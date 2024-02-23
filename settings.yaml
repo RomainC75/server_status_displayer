@@ -1,0 +1,6 @@
+URLs:
+  - https://api.apis.guru/v2/list.json
+  - https://api.publicapis.org/entries
+  - https://api.artic.edu/api/v1/artworks/search?q=cats
+  - https://api.artic.edu/api/v1/artworks/search?q=cats
+Interval_s: 10
