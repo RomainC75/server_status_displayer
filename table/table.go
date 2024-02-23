@@ -2,14 +2,33 @@ package table
 
 import (
 	"fmt"
+	"sync"
 	"time"
+	"tviewTest/settings"
 	"tviewTest/tester"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
-func draw() {
+type Displayer struct {
+	URLs       []string
+	Interval_s int
+	app        *tview.Application
+	table      *tview.Table
+	m          *sync.Mutex
+}
+
+func NewDisplayer(yaml settings.YAML) *Displayer {
+	return &Displayer{
+		URLs:       yaml.URLs,
+		Interval_s: yaml.Interval_s,
+		app:        tview.NewApplication(),
+		table:      tview.NewTable(),
+	}
+}
+
+func (d *Displayer) draw() {
 	app := tview.NewApplication()
 	table := tview.NewTable()
 
@@ -60,7 +79,7 @@ func draw() {
 	}
 }
 
-func Merger(channels []chan tester.TestingResult) {
+func (d *Displayer) Merger(channels []chan tester.TestingResult) {
 
 }
 
