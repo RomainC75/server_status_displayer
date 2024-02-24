@@ -85,7 +85,6 @@ func (d *Displayer) RefreshHistory() {
 		start := d.historyResults[row].start
 		end := d.historyResults[row].end
 		elapsed_h := ((*end).Unix() - (*start).Unix()) / 60 / 60
-
 		d.historyTable.SetCell(row, 2, tview.NewTableCell(fmt.Sprintf("[blue]%d", elapsed_h)).
 			SetTextColor(tview.Styles.PrimaryTextColor).
 			SetAlign(tview.AlignRight))
@@ -168,7 +167,9 @@ func (d *Displayer) createHistoryEntry(tr tester.TestResult) {
 		start: &start,
 		end:   &end,
 	}
+	d.m.Lock()
 	d.historyResults = append(d.historyResults, history)
+	d.m.Unlock()
 }
 
 // func display(data []Data) *tview.Table {
