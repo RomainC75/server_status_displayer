@@ -7,8 +7,13 @@ import (
 )
 
 type YAML struct {
-	URLs       []string `yaml:"URLs"`
-	Interval_s int      `yaml:"Interval_s"`
+	URLs       []Url `yaml:"URLs"`
+	Interval_s int   `yaml:"Interval_s"`
+}
+
+type Url struct {
+	Url  string `yaml:"url"`
+	Name string `yaml:"name"`
 }
 
 func SetSettings() error {

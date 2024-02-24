@@ -10,6 +10,7 @@ import (
 type TestResult struct {
 	IsUp bool
 	Url  string
+	Name string
 }
 
 func Tester(yaml settings.YAML) (*sync.WaitGroup, []chan TestResult) {
@@ -18,22 +19,23 @@ func Tester(yaml settings.YAML) (*sync.WaitGroup, []chan TestResult) {
 	testResultChans := make([]chan TestResult, len(yaml.URLs))
 	wg.Add(len(yaml.URLs))
 
-	for i, url := range yaml.URLs {
-		url := url
+	for i, Url := range yaml.URLs {
+		url := Url
 		testResCh := GoTest(testResultChans, url, yaml)
 		testResultChans[i] = testResCh
 	}
 	return &wg, testResultChans
 }
 
-func GoTest(testResultChans []chan TestResult, url string, yaml settings.YAML) chan TestResult {
+func GoTest(testResultChans []chan TestResult, Url settings.Url, yaml settings.YAML) chan TestResult {
 	ch := make(chan TestResult)
 	go func() {
 		testResultChans = append(testResultChans, ch)
 		for {
-			_, err := http.Get(url)
+			_, err := http.Get(Url.Url)
 			var testResult TestResult
-			testResult.Url = url
+			testResult.Url = Url.Url
+			testResult.Name = Url.Name
 
 			if err != nil {
 				testResult.IsUp = false

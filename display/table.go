@@ -23,7 +23,8 @@ func NewDisplayer(yaml settings.YAML) *Displayer {
 	tr := []tester.TestResult{}
 	for _, v := range yaml.URLs {
 		tr = append(tr, tester.TestResult{
-			Url: v,
+			Url:  v.Url,
+			Name: v.Name,
 		})
 	}
 
@@ -50,7 +51,7 @@ func (d *Displayer) Draw() {
 						var txt string
 						switch column {
 						case 0:
-							txt = d.testResults[row].Url
+							txt = d.testResults[row].Name
 						case 1:
 							txt = strconv.FormatBool(d.testResults[row].IsUp)
 						}
