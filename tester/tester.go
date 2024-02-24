@@ -8,9 +8,10 @@ import (
 )
 
 type TestResult struct {
-	IsUp bool
-	Url  string
-	Name string
+	IsUp   bool
+	Url    string
+	Name   string
+	LastUp *time.Time
 }
 
 func Tester(yaml settings.YAML) (*sync.WaitGroup, []chan TestResult) {
@@ -36,6 +37,7 @@ func GoTest(testResultChans []chan TestResult, Url settings.Url, yaml settings.Y
 			var testResult TestResult
 			testResult.Url = Url.Url
 			testResult.Name = Url.Name
+			testResult.LastUp = nil
 
 			if err != nil {
 				testResult.IsUp = false

@@ -44,25 +44,32 @@ func (d *Displayer) Draw() {
 			d.app.QueueUpdateDraw(func() {
 				d.table.Clear()
 				for row := 0; row < len(d.testResults); row++ {
-					for column := 0; column < 2; column++ {
-						color := tview.AlignRight
+					for column := 0; column < 3; column++ {
+						align := tview.AlignRight
 
 						var txt string
 						switch column {
 						case 0:
 							txt = d.testResults[row].Name
+							align = tview.AlignLeft
 						case 1:
 							if d.testResults[row].IsUp {
 								txt = "[green]O"
 							} else {
 								txt = "[red]X"
 							}
+						case 2:
+							if d.testResults[row].LastUp != nil {
+								txt = "[yellow]" + d.testResults[row].LastUp.Format("2006-01-02 15:04:05")
+							} else {
+								txt = ""
+							}
 						}
 
 						d.table.SetCell(row, column,
 							tview.NewTableCell(txt).
 								SetTextColor(tview.Styles.PrimaryTextColor).
-								SetAlign(color))
+								SetAlign(align))
 					}
 				}
 				i++
@@ -88,12 +95,17 @@ func (d *Displayer) GoMerger(channels []chan tester.TestResult) {
 				// case result := <-channel:
 				result := <-channel
 
+				isUp := rand.Intn(3) < 1 && result.IsUp
 				d.m.Lock()
-				if rand.Intn(3) > 1 {
-					d.testResults[index].IsUp = false
-				} else {
-					d.testResults[index].IsUp = result.IsUp
+
+				if d.testResults[index].IsUp && !isUp {
+					now := time.Now()
+					d.testResults[index].LastUp = &now
 				}
+				if isUp {
+					d.testResults[index].LastUp = nil
+				}
+				d.testResults[index].IsUp = isUp
 				d.m.Unlock()
 
 				// }
