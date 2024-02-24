@@ -2,7 +2,6 @@ package display
 
 import (
 	"math/rand"
-	"strconv"
 	"sync"
 	"time"
 	"tviewTest/settings"
@@ -53,7 +52,11 @@ func (d *Displayer) Draw() {
 						case 0:
 							txt = d.testResults[row].Name
 						case 1:
-							txt = strconv.FormatBool(d.testResults[row].IsUp)
+							if d.testResults[row].IsUp {
+								txt = "[green]O"
+							} else {
+								txt = "[red]X"
+							}
 						}
 
 						d.table.SetCell(row, column,
