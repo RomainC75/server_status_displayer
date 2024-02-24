@@ -45,8 +45,6 @@ func GoTest(testResultChans []chan TestResult, Url settings.Url, yaml settings.Y
 				testResult.IsUp = true
 			}
 
-			// fmt.Println(url, "==>", testResult.IsUp)d
-
 			ch <- testResult
 
 			time.Sleep(time.Second * time.Duration(yaml.Interval_s))
