@@ -16,7 +16,7 @@ type Displayer struct {
 	Interval_s  int
 	app         *tview.Application
 	table       *tview.Table
-	m           *sync.Mutex
+	m           sync.Mutex
 }
 
 func NewDisplayer(yaml settings.YAML) *Displayer {
@@ -34,6 +34,7 @@ func NewDisplayer(yaml settings.YAML) *Displayer {
 		// table:       tview.NewTable(),
 		app:   nil,
 		table: nil,
+		m:     sync.Mutex{},
 	}
 }
 
@@ -83,13 +84,16 @@ func (d *Displayer) GoMerger(channels []chan tester.TestResult) {
 				// select {
 				// done
 				// case result := <-channel:
-				// result := <-channel
-				// d.m.Lock()
-				// d.testResults[index].IsUp = result.IsUp
-				// d.m.Unlock()
-				// }
 				result := <-channel
-				fmt.Println(index, result)
+				fmt.Println("= new result ", "|", index, "|", result.Url, result.IsUp)
+				fmt.Println("write ")
+				d.m.Lock()
+				d.testResults[index].IsUp = result.IsUp
+				d.m.Unlock()
+				fmt.Println("writtent")
+				fmt.Println("= new result ", "|", index, "|", result.Url, result.IsUp)
+				// }
+
 			}
 		}()
 	}
