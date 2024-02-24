@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"time"
+	"tviewTest/display"
 	"tviewTest/settings"
 	"tviewTest/tester"
 
@@ -31,6 +32,12 @@ func main() {
 
 	pp.Print(yaml)
 
-	wg := tester.Tester(yaml)
+	wg, testResultChans := tester.Tester(yaml)
+
+	display := display.NewDisplayer(yaml)
+	display.GoMerger(testResultChans)
+
+	// display.Draw()
+
 	wg.Wait()
 }

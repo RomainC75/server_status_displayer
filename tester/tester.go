@@ -8,15 +8,15 @@ import (
 	"tviewTest/settings"
 )
 
-type TestingResult struct {
-	isUp bool
-	url  string
+type TestResult struct {
+	IsUp bool
+	Url  string
 }
 
-func Tester(yaml settings.YAML) *sync.WaitGroup {
+func Tester(yaml settings.YAML) (*sync.WaitGroup, []chan TestResult) {
 	var wg sync.WaitGroup
 
-	testResultChans := make([]chan TestingResult, len(yaml.URLs))
+	testResultChans := make([]chan TestResult, len(yaml.URLs))
 	wg.Add(len(yaml.URLs))
 
 	for i, url := range yaml.URLs {
@@ -24,28 +24,27 @@ func Tester(yaml settings.YAML) *sync.WaitGroup {
 		testResCh := GoTest(testResultChans, url, yaml)
 		testResultChans[i] = testResCh
 	}
-	return &wg
+	return &wg, testResultChans
 }
 
-func GoTest(testResultChans []chan TestingResult, url string, yaml settings.YAML) chan TestingResult {
-	ch := make(chan TestingResult)
+func GoTest(testResultChans []chan TestResult, url string, yaml settings.YAML) chan TestResult {
+	ch := make(chan TestResult)
 	go func() {
-		// var ch chan TestingResult
 		testResultChans = append(testResultChans, ch)
 		for {
 			_, err := http.Get(url)
-			var testingResult TestingResult
-			testingResult.url = url
+			var testResult TestResult
+			testResult.Url = url
 
 			if err != nil {
-				testingResult.isUp = false
+				testResult.IsUp = false
 			} else {
-				testingResult.isUp = true
+				testResult.IsUp = true
 			}
 
-			fmt.Println(url, "==>", testingResult.isUp)
+			fmt.Println(url, "==>", testResult.IsUp)
 
-			ch <- testingResult
+			ch <- testResult
 
 			time.Sleep(time.Second * time.Duration(yaml.Interval_s))
 		}
