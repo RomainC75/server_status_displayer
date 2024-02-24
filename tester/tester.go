@@ -1,7 +1,6 @@
 package tester
 
 import (
-	"fmt"
 	"net/http"
 	"sync"
 	"time"
@@ -42,7 +41,7 @@ func GoTest(testResultChans []chan TestResult, url string, yaml settings.YAML) c
 				testResult.IsUp = true
 			}
 
-			fmt.Println(url, "==>", testResult.IsUp)
+			// fmt.Println(url, "==>", testResult.IsUp)d
 
 			ch <- testResult
 

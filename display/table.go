@@ -1,7 +1,7 @@
 package display
 
 import (
-	"fmt"
+	"math/rand"
 	"strconv"
 	"sync"
 	"time"
@@ -30,11 +30,9 @@ func NewDisplayer(yaml settings.YAML) *Displayer {
 	return &Displayer{
 		testResults: tr,
 		Interval_s:  yaml.Interval_s,
-		// app:         tview.NewApplication(),
-		// table:       tview.NewTable(),
-		app:   nil,
-		table: nil,
-		m:     sync.Mutex{},
+		app:         tview.NewApplication(),
+		table:       tview.NewTable(),
+		m:           sync.Mutex{},
 	}
 }
 
@@ -85,13 +83,15 @@ func (d *Displayer) GoMerger(channels []chan tester.TestResult) {
 				// done
 				// case result := <-channel:
 				result := <-channel
-				fmt.Println("= new result ", "|", index, "|", result.Url, result.IsUp)
-				fmt.Println("write ")
+
 				d.m.Lock()
-				d.testResults[index].IsUp = result.IsUp
+				if rand.Intn(3) > 1 {
+					d.testResults[index].IsUp = false
+				} else {
+					d.testResults[index].IsUp = result.IsUp
+				}
 				d.m.Unlock()
-				fmt.Println("writtent")
-				fmt.Println("= new result ", "|", index, "|", result.Url, result.IsUp)
+
 				// }
 
 			}

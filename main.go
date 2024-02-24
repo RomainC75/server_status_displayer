@@ -37,7 +37,7 @@ func main() {
 	display := display.NewDisplayer(yaml)
 	display.GoMerger(testResultChans)
 
-	// display.Draw()
+	display.Draw()
 
 	wg.Wait()
 }
