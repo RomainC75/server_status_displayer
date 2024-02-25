@@ -58,7 +58,6 @@ func (d *Displayer) Draw() {
 				d.RefreshStateTable()
 				d.RefreshHistory()
 				i++
-				// fmt.Printf("%d ", i)
 			})
 			time.Sleep(1 * time.Second)
 		}
@@ -85,7 +84,7 @@ func (d *Displayer) RefreshHistory() {
 			SetTextColor(tview.Styles.PrimaryTextColor).
 			SetAlign(tview.AlignLeft))
 
-		// time elapsed_h
+		// elapsed time
 		start := d.historyResults[row].start
 		end := d.historyResults[row].end
 		elapsed_ns := time.Duration(((*end).Unix() - (*start).Unix()) * 1000000000)
@@ -169,15 +168,12 @@ func (d *Displayer) GoMerger(channels []chan tester.TestResult) {
 func (d *Displayer) createHistoryEntry(tr tester.TestResult) {
 	start := *tr.LastUp
 	end := time.Now()
-	// elapsed := end.Unix() - start.Unix()
-	// fmt.Println("=> ", end.Unix(), (elapsed / 60 / 60))
 	history := History{
 		name:  tr.Name,
 		url:   tr.Url,
 		start: &start,
 		end:   &end,
 	}
-	// pp.Print(history)
 	d.m.Lock()
 	d.historyResults = append(d.historyResults, history)
 	d.m.Unlock()
