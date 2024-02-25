@@ -57,9 +57,11 @@ func (d *Displayer) Draw() {
 				d.RefreshStateTable()
 				d.RefreshHistory()
 				i++
+				fmt.Printf("%d ", i)
 			})
 			time.Sleep(1 * time.Second)
 		}
+
 	}()
 
 	d.flex.AddItem(d.stateTable, 0, 1, false).AddItem(d.historyTable, 0, 1, false)
@@ -85,6 +87,7 @@ func (d *Displayer) RefreshHistory() {
 		start := d.historyResults[row].start
 		end := d.historyResults[row].end
 		elapsed_h := ((*end).Unix() - (*start).Unix()) / 60 / 60
+		fmt.Println("elasped_h", elapsed_h)
 		d.historyTable.SetCell(row, 2, tview.NewTableCell(fmt.Sprintf("[blue]%d", elapsed_h)).
 			SetTextColor(tview.Styles.PrimaryTextColor).
 			SetAlign(tview.AlignRight))
@@ -167,6 +170,7 @@ func (d *Displayer) createHistoryEntry(tr tester.TestResult) {
 		start: &start,
 		end:   &end,
 	}
+	// pp.Print(history)
 	d.m.Lock()
 	d.historyResults = append(d.historyResults, history)
 	d.m.Unlock()

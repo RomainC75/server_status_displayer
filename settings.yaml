@@ -1,6 +1,8 @@
 URLs:
   - url: https://api.apis.guru/v2/list.json
     name: guru
+  - url: https://api.apis.guru/v2/list.jsonsdf
+    name: guru2
   - url: https://api.publicapis.org/entries
     name: piblicapis
   - url : https://api.artic.edu/api/v1/artworks/search?q=cats
