@@ -164,7 +164,6 @@ func (d *Displayer) GoMerger(channels []chan tester.TestResult) {
 
 }
 
-// create history in a "d.m.locked" part
 func (d *Displayer) createHistoryEntry(tr tester.TestResult) {
 	start := *tr.LastUp
 	end := time.Now()

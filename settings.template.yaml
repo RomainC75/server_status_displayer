@@ -1,0 +1,6 @@
+URLs:
+  - url: https://api.apis.guru/v2/list.json
+    name: guru
+  - url: https://api.apis.guru/v2/list.jsonsdf
+    name: guru2
+Interval_s: 3
