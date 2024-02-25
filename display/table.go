@@ -37,20 +37,16 @@ func NewDisplayer(yaml settings.YAML) *Displayer {
 			Name: v.Name,
 		})
 	}
-	start := time.Now()
-	end := time.Now()
 
 	return &Displayer{
-		testResults: tr,
-		historyResults: []History{
-			{"name", "lkjsdlkfjsdf", &start, &end},
-		},
-		Interval_s:   yaml.Interval_s,
-		app:          tview.NewApplication(),
-		flex:         tview.NewFlex().SetDirection(tview.FlexColumn),
-		stateTable:   tview.NewTable(),
-		historyTable: tview.NewTable(),
-		m:            sync.Mutex{},
+		testResults:    tr,
+		historyResults: []History{},
+		Interval_s:     yaml.Interval_s,
+		app:            tview.NewApplication(),
+		flex:           tview.NewFlex().SetDirection(tview.FlexColumn),
+		stateTable:     tview.NewTable(),
+		historyTable:   tview.NewTable(),
+		m:              sync.Mutex{},
 	}
 }
 
@@ -92,14 +88,12 @@ func (d *Displayer) RefreshHistory() {
 		// time elapsed_h
 		start := d.historyResults[row].start
 		end := d.historyResults[row].end
-		elapsed_h := ((*end).Unix() - (*start).Unix()) / 60 / 60
-		// fmt.Println("elasped_h", elapsed_h)
-		d.historyTable.SetCell(row, 2, tview.NewTableCell(fmt.Sprintf("[blue]%d", elapsed_h)).
+		elapsed_ns := time.Duration(((*end).Unix() - (*start).Unix()) * 1000000000)
+
+		d.historyTable.SetCell(row, 2, tview.NewTableCell(fmt.Sprintf("[blue]%s", elapsed_ns.String())).
 			SetTextColor(tview.Styles.PrimaryTextColor).
 			SetAlign(tview.AlignRight))
-
 	}
-
 }
 
 func (d *Displayer) RefreshStateTable() {
@@ -148,27 +142,35 @@ func (d *Displayer) GoMerger(channels []chan tester.TestResult) {
 				result := <-channel
 
 				isNowUp := rand.Intn(3) < 1 && result.IsUp
-				d.m.Lock()
 
 				if d.testResults[index].IsUp && !isNowUp {
 					now := time.Now()
+					d.m.Lock()
 					d.testResults[index].LastUp = &now
+					d.m.Unlock()
 				} else if isNowUp {
 					if d.testResults[index].LastUp != nil {
 						d.createHistoryEntry(d.testResults[index])
 					}
+					d.m.Lock()
 					d.testResults[index].LastUp = nil
+					d.m.Unlock()
 				}
+				d.m.Lock()
 				d.testResults[index].IsUp = isNowUp
 				d.m.Unlock()
 			}
 		}()
 	}
+
 }
 
+// create history in a "d.m.locked" part
 func (d *Displayer) createHistoryEntry(tr tester.TestResult) {
 	start := *tr.LastUp
 	end := time.Now()
+	// elapsed := end.Unix() - start.Unix()
+	// fmt.Println("=> ", end.Unix(), (elapsed / 60 / 60))
 	history := History{
 		name:  tr.Name,
 		url:   tr.Url,
@@ -176,41 +178,7 @@ func (d *Displayer) createHistoryEntry(tr tester.TestResult) {
 		end:   &end,
 	}
 	// pp.Print(history)
+	d.m.Lock()
 	d.historyResults = append(d.historyResults, history)
+	d.m.Unlock()
 }
-
-// func display(data []Data) *tview.Table {
-// 	stateTable := tview.NewTable().SetFixed(1, 1)
-// 	for row := 0; row < len(data); row++ {
-// 		for column := 0; column < 3; column++ {
-// 			color := tcell.ColorWhite
-// 			if row == 0 {
-// 				color = tcell.ColorYellow
-// 			} else if column == 0 {
-// 				color = tcell.ColorDarkCyan
-// 			}
-// 			align := tview.AlignLeft
-// 			if row == 0 {
-// 				align = tview.AlignCenter
-// 			} else if column == 0 || column >= 4 {
-// 				align = tview.AlignRight
-// 			}
-
-// 			var txt string
-// 			switch column {
-// 			case 0:
-// 				txt = data[row].Date.String()
-// 			case 1:
-// 				txt = data[row].Region
-// 			case 2:
-// 				txt = fmt.Sprintf("%f", data[row].Price)
-// 			}
-// 			stateTable.SetCell(row, column, &tview.TableCell{
-// 				Text:  txt,
-// 				Color: color,
-// 				Align: align,
-// 			})
-// 		}
-// 	}
-// 	return stateTable
-// }
