@@ -37,9 +37,14 @@ func NewDisplayer(yaml settings.YAML) *Displayer {
 			Name: v.Name,
 		})
 	}
+	start := time.Now()
+	end := time.Now()
 
 	return &Displayer{
-		testResults:  tr,
+		testResults: tr,
+		historyResults: []History{
+			{"name", "lkjsdlkfjsdf", &start, &end},
+		},
 		Interval_s:   yaml.Interval_s,
 		app:          tview.NewApplication(),
 		flex:         tview.NewFlex().SetDirection(tview.FlexColumn),
@@ -57,7 +62,7 @@ func (d *Displayer) Draw() {
 				d.RefreshStateTable()
 				d.RefreshHistory()
 				i++
-				fmt.Printf("%d ", i)
+				// fmt.Printf("%d ", i)
 			})
 			time.Sleep(1 * time.Second)
 		}
@@ -73,6 +78,7 @@ func (d *Displayer) Draw() {
 func (d *Displayer) RefreshHistory() {
 	d.historyTable.Clear()
 	for row := 0; row < len(d.historyResults); row++ {
+
 		// name
 		d.historyTable.SetCell(row, 0, tview.NewTableCell(d.historyResults[row].name).
 			SetTextColor(tview.Styles.PrimaryTextColor).
@@ -87,7 +93,7 @@ func (d *Displayer) RefreshHistory() {
 		start := d.historyResults[row].start
 		end := d.historyResults[row].end
 		elapsed_h := ((*end).Unix() - (*start).Unix()) / 60 / 60
-		fmt.Println("elasped_h", elapsed_h)
+		// fmt.Println("elasped_h", elapsed_h)
 		d.historyTable.SetCell(row, 2, tview.NewTableCell(fmt.Sprintf("[blue]%d", elapsed_h)).
 			SetTextColor(tview.Styles.PrimaryTextColor).
 			SetAlign(tview.AlignRight))
@@ -141,20 +147,19 @@ func (d *Displayer) GoMerger(channels []chan tester.TestResult) {
 				// case result := <-channel:
 				result := <-channel
 
-				isUp := rand.Intn(3) < 1 && result.IsUp
+				isNowUp := rand.Intn(3) < 1 && result.IsUp
 				d.m.Lock()
 
-				if d.testResults[index].IsUp && !isUp {
+				if d.testResults[index].IsUp && !isNowUp {
 					now := time.Now()
 					d.testResults[index].LastUp = &now
-				}
-				if isUp {
+				} else if isNowUp {
 					if d.testResults[index].LastUp != nil {
 						d.createHistoryEntry(d.testResults[index])
 					}
 					d.testResults[index].LastUp = nil
 				}
-				d.testResults[index].IsUp = isUp
+				d.testResults[index].IsUp = isNowUp
 				d.m.Unlock()
 			}
 		}()
@@ -171,9 +176,7 @@ func (d *Displayer) createHistoryEntry(tr tester.TestResult) {
 		end:   &end,
 	}
 	// pp.Print(history)
-	d.m.Lock()
 	d.historyResults = append(d.historyResults, history)
-	d.m.Unlock()
 }
 
 // func display(data []Data) *tview.Table {
