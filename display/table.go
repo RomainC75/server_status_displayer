@@ -5,22 +5,17 @@ import (
 	"math/rand"
 	"sync"
 	"time"
+	"tviewTest/file"
 	"tviewTest/settings"
 	"tviewTest/tester"
 
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
-type History struct {
-	name  string
-	url   string
-	start *time.Time
-	end   *time.Time
-}
-
 type Displayer struct {
 	testResults    []tester.TestResult
-	historyResults []History
+	historyResults []file.History
 	Interval_s     int
 	app            *tview.Application
 	flex           *tview.Flex
@@ -40,7 +35,7 @@ func NewDisplayer(yaml settings.YAML) *Displayer {
 
 	return &Displayer{
 		testResults:    tr,
-		historyResults: []History{},
+		historyResults: []file.History{},
 		Interval_s:     yaml.Interval_s,
 		app:            tview.NewApplication(),
 		flex:           tview.NewFlex().SetDirection(tview.FlexColumn),
@@ -63,8 +58,17 @@ func (d *Displayer) Draw() {
 		}
 
 	}()
-
 	d.flex.AddItem(d.stateTable, 0, 1, false).AddItem(d.historyTable, 0, 1, false)
+	d.app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyCtrlQ {
+			fmt.Println("lkjsdf")
+			file.CreateFile(d.historyResults)
+			time.Sleep(time.Second * 4)
+			// d.app.Stop()
+			// => terminate every goRoutine
+		}
+		return event
+	})
 	if err := d.app.SetRoot(d.flex, true).Run(); err != nil {
 		panic(err)
 	}
@@ -75,21 +79,20 @@ func (d *Displayer) RefreshHistory() {
 	for row := 0; row < len(d.historyResults); row++ {
 
 		// name
-		d.historyTable.SetCell(row, 0, tview.NewTableCell(d.historyResults[row].name).
+
+		d.historyTable.SetCell(row, 0, tview.NewTableCell(d.historyResults[row].Name).
 			SetTextColor(tview.Styles.PrimaryTextColor).
 			SetAlign(tview.AlignLeft))
 
 		// start
-		d.historyTable.SetCell(row, 1, tview.NewTableCell("[yellow]"+d.historyResults[row].start.Format("2006-01-02 15:04:05")).
+		d.historyTable.SetCell(row, 1, tview.NewTableCell("[yellow]"+d.historyResults[row].Start.Format("2006-01-02 15:04:05")).
 			SetTextColor(tview.Styles.PrimaryTextColor).
 			SetAlign(tview.AlignLeft))
 
 		// elapsed time
-		start := d.historyResults[row].start
-		end := d.historyResults[row].end
-		elapsed_ns := time.Duration(((*end).Unix() - (*start).Unix()) * 1000000000)
+		elapsed_ns := file.GetElapsedTime_ns(d.historyResults[row])
 
-		d.historyTable.SetCell(row, 2, tview.NewTableCell(fmt.Sprintf("[blue]%s", elapsed_ns.String())).
+		d.historyTable.SetCell(row, 2, tview.NewTableCell(fmt.Sprintf("[blue]%s", elapsed_ns)).
 			SetTextColor(tview.Styles.PrimaryTextColor).
 			SetAlign(tview.AlignRight))
 	}
@@ -167,11 +170,11 @@ func (d *Displayer) GoMerger(channels []chan tester.TestResult) {
 func (d *Displayer) createHistoryEntry(tr tester.TestResult) {
 	start := *tr.LastUp
 	end := time.Now()
-	history := History{
-		name:  tr.Name,
-		url:   tr.Url,
-		start: &start,
-		end:   &end,
+	history := file.History{
+		Name:  tr.Name,
+		Url:   tr.Url,
+		Start: &start,
+		End:   &end,
 	}
 	d.m.Lock()
 	d.historyResults = append(d.historyResults, history)
